@@ -1,0 +1,47 @@
+name: Fetch "The Economist"
+
+on:
+  schedule:
+    - cron: "0 0 * * SAT"
+  workflow_dispatch:
+
+jobs:
+  fetch-news:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Calibre
+        run: |
+          sudo apt-get update
+          sudo apt-get install libegl1 libopengl0 libxcb-cursor0
+          sudo -v && wget -nv -O- https://download.calibre-ebook.com/linux-installer.sh | sudo sh /dev/stdin
+
+      - name: Fetch news
+        run: |
+          mkdir -p output
+          YEAR=$(date +%Y)
+          WEEK=$(date +%V)
+          SERIES_INDEX="${YEAR}.${WEEK}"
+
+          ebook-convert "The Economist.recipe" "output/the-economist.kepub" \
+            --authors "Various Authors" \
+            --author-sort "Various Authors" \
+            --tags "News" \
+            --publisher "The Economist" \
+            --series "The Economist" \
+            --series-index "$SERIES_INDEX"
+
+      - name: Upload .kepub file to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: the-economist-kepub
+          path: output/the-economist.kepub
+          retention-days: 90
