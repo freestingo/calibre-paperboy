@@ -1,0 +1,48 @@
+name: National Geographic
+
+on:
+  schedule:
+    - cron: "0 0 1 * *"
+  workflow_dispatch:
+
+jobs:
+  fetch-news:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Calibre
+        run: |
+          sudo apt-get update
+          sudo apt-get install libegl1 libopengl0 libxcb-cursor0
+          sudo -v && wget -nv -O- https://download.calibre-ebook.com/linux-installer.sh | sudo sh /dev/stdin
+
+      - name: Fetch news
+        run: |
+          mkdir -p output
+          YEAR=$(date +%Y)
+          MONTH=$(date +%m)
+          SERIES_INDEX="${YEAR}.${MONTH}"
+
+          ebook-convert "custom-recipes/National Geographic.recipe" "output/national-geographic.kepub" \
+            --recipe-specific-option=res:1500 \
+            --authors "Various Authors" \
+            --author-sort "Various Authors" \
+            --tags "News" \
+            --publisher "National Geographic" \
+            --series "National Geographic" \
+            --series-index "$SERIES_INDEX"
+
+      - name: Upload .kepub file to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: national-geographic-kepub
+          path: output/national-geographic.kepub
+          retention-days: 90
