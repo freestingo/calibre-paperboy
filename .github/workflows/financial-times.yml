@@ -1,0 +1,50 @@
+name: Financial Times + Free Lunch newsletter
+
+on:
+  schedule:
+    - cron: "0 0 1 * *"
+  workflow_dispatch:
+
+jobs:
+  fetch-news:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Calibre
+        run: |
+          sudo apt-get update
+          sudo apt-get install libegl1 libopengl0 libxcb-cursor0
+          sudo apt-get install ncal
+          sudo -v && wget -nv -O- https://download.calibre-ebook.com/linux-installer.sh | sudo sh /dev/stdin
+
+      - name: Fetch news
+        run: |
+          mkdir -p output
+          YEAR=$(date +%Y)
+          MONTH=$(date +%m)
+          SERIES_INDEX="${YEAR}.${MONTH}"
+          DAYS=$(echo $(cal $(date -d "last month" +%m) $(date -d "last month" +%Y)) | tail -c 3) # Get number of days in the previous month
+
+          ebook-convert "custom-recipes/Financial Times + Free Lunch newsletter.recipe" "output/financial-times.kepub" \
+            --recipe-specific-option=days:$DAYS \
+            --authors "Various Authors" \
+            --author-sort "Various Authors" \
+            --tags "News" \
+            --publisher "Financial Times" \
+            --series "Financial Times" \
+            --series-index "$SERIES_INDEX"
+
+      - name: Upload .kepub file to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: financial-times-kepub
+          path: output/financial-times.kepub
+          retention-days: 90
