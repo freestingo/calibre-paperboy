@@ -1,8 +1,8 @@
-name: CNN
+name: The Guardian
 
 on:
   # schedule:
-  #   - cron: "0 0 * * *"
+  #   - cron: "0 0 * * SAT"
   workflow_dispatch:
 
 jobs:
@@ -28,22 +28,20 @@ jobs:
         run: |
           mkdir -p output
           YEAR=$(date +%Y)
-          MONTH=$(date +%m)
-          DAY=$(date +%d)
-          SERIES_INDEX="${YEAR}${MONTH}.${DAY}"
+          WEEK=$(date +%V)
+          SERIES_INDEX="${YEAR}.${WEEK}"
 
-          ebook-convert "custom-recipes/CNN.recipe" "output/cnn.kepub" \
-            --recipe-specific-option=days:1 \
+          ebook-convert "custom-recipes/The Guardian.recipe" "output/the-guardian.kepub" \
             --authors "Various Authors" \
             --author-sort "Various Authors" \
             --tags "News" \
-            --publisher "CNN" \
-            --series "CNN" \
+            --publisher "The Guardian" \
+            --series "The Guardian" \
             --series-index "$SERIES_INDEX"
 
       - name: Upload .kepub file to artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: cnn-kepub
-          path: output/cnn.kepub
+          name: the-guardian-kepub
+          path: output/the-guardian.kepub
           retention-days: 90
