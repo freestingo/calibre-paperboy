@@ -1,8 +1,8 @@
-name: The Economist
+name: Foreign Affairs
 
 on:
   schedule:
-    - cron: "0 0 * * SAT"
+    - cron: "0 0 1 */2 *"
   workflow_dispatch:
 
 jobs:
@@ -28,20 +28,20 @@ jobs:
         run: |
           mkdir -p output
           YEAR=$(date +%Y)
-          WEEK=$(date +%V)
-          SERIES_INDEX="${YEAR}.${WEEK}"
+          MONTH=$(date +%m)
+          SERIES_INDEX="${YEAR}.${MONTH}"
 
-          ebook-convert "The Economist.recipe" "output/the-economist.kepub" \
+          ebook-convert "Foreign Affairs.recipe" "output/foreign-affairs.kepub" \
             --authors "Various Authors" \
             --author-sort "Various Authors" \
             --tags "News" \
-            --publisher "The Economist" \
-            --series "The Economist" \
+            --publisher "Foreign Affairs" \
+            --series "Foreign Affairs" \
             --series-index "$SERIES_INDEX"
 
       - name: Upload .kepub file to artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: the-economist-kepub
-          path: output/the-economist.kepub
+          name: foreign-affairs-kepub
+          path: output/foreign-affairs.kepub
           retention-days: 90

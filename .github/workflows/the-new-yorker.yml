@@ -1,8 +1,8 @@
-name: The Economist
+name: The New Yorker Magazine
 
 on:
   schedule:
-    - cron: "0 0 * * SAT"
+    - cron: "0 0 * * SUN"
   workflow_dispatch:
 
 jobs:
@@ -31,17 +31,17 @@ jobs:
           WEEK=$(date +%V)
           SERIES_INDEX="${YEAR}.${WEEK}"
 
-          ebook-convert "The Economist.recipe" "output/the-economist.kepub" \
+          ebook-convert "The New Yorker Magazine.recipe" "output/the-new-yorker-magazine.kepub" \
             --authors "Various Authors" \
             --author-sort "Various Authors" \
             --tags "News" \
-            --publisher "The Economist" \
-            --series "The Economist" \
+            --publisher "The New Yorker Magazine" \
+            --series "The New Yorker Magazine" \
             --series-index "$SERIES_INDEX"
 
       - name: Upload .kepub file to artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: the-economist-kepub
-          path: output/the-economist.kepub
+          name: the-new-yorker-magazine-kepub
+          path: output/the-new-yorker-magazine.kepub
           retention-days: 90
