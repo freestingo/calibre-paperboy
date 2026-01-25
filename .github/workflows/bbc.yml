@@ -1,0 +1,50 @@
+name: BBC News
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  fetch-news:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Calibre
+        run: |
+          sudo apt-get update
+          sudo apt-get install libegl1 libopengl0 libxcb-cursor0
+          sudo apt-get install ncal
+          sudo -v && wget -nv -O- https://download.calibre-ebook.com/linux-installer.sh | sudo sh /dev/stdin
+
+      - name: Fetch news
+        run: |
+          mkdir -p output
+          YEAR=$(date +%Y)
+          MONTH=$(date +%m)
+          DAY=$(date +%d)
+          SERIES_INDEX="${YEAR}${MONTH}.${DAY}"
+
+          ebook-convert "custom-recipes/BBC News.recipe" "output/bbc-news.kepub" \
+            --recipe-specific-option=days:1 \
+            --authors "Various Authors" \
+            --author-sort "Various Authors" \
+            --tags "News" \
+            --publisher "BBC" \
+            --series "BBC News" \
+            --series-index "$SERIES_INDEX"
+
+      - name: Upload .kepub file to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bbc-news-kepub
+          path: output/bbc-news.kepub
+          retention-days: 90
