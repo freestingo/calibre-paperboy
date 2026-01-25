@@ -25,6 +25,10 @@ jobs:
           sudo apt-get install ncal
           sudo -v && wget -nv -O- https://download.calibre-ebook.com/linux-installer.sh | sudo sh /dev/stdin
 
+      - name: Set current date in env variables
+        run: |
+          echo "DATE=$(date +%Y-%m-%d)" >> $GITHUB_ENV
+
       - name: Fetch news
         run: |
           mkdir -p output
@@ -33,7 +37,7 @@ jobs:
           SERIES_INDEX="${YEAR}.${MONTH}"
           DAYS=$(echo $(cal $(date -d "last month" +%m) $(date -d "last month" +%Y)) | tail -c 3) # Get number of days in the previous month
 
-          ebook-convert "custom-recipes/Financial Times + Free Lunch newsletter.recipe" "output/financial-times.kepub" \
+          ebook-convert "custom-recipes/Financial Times + Free Lunch newsletter.recipe" "financial-times-${{ env.DATE }}.kepub" \
             --recipe-specific-option=days:$DAYS \
             --authors "Various Authors" \
             --author-sort "Various Authors" \
@@ -45,6 +49,15 @@ jobs:
       - name: Upload .kepub file to artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: financial-times-kepub
-          path: output/financial-times.kepub
+          name: financial-times-${{ env.DATE }}
+          path: financial-times-${{ env.DATE }}.kepub
           retention-days: 90
+
+      - name: Upload .kepub file to VPS
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: financial-times-${{ env.DATE }}.kepub
+          target: ${{ secrets.VPS_PATH }}

@@ -24,6 +24,10 @@ jobs:
           sudo apt-get install libegl1 libopengl0 libxcb-cursor0
           sudo -v && wget -nv -O- https://download.calibre-ebook.com/linux-installer.sh | sudo sh /dev/stdin
 
+      - name: Set current date in env variables
+        run: |
+          echo "DATE=$(date +%Y-%m-%d)" >> $GITHUB_ENV
+
       - name: Fetch news
         run: |
           mkdir -p output
@@ -31,7 +35,7 @@ jobs:
           WEEK=$(date +%V)
           SERIES_INDEX="${YEAR}.${WEEK}"
 
-          ebook-convert "The Economist.recipe" "output/the-economist.kepub" \
+          ebook-convert "The Economist.recipe" "the-economist-${{ env.DATE }}.kepub" \
             --authors "Various Authors" \
             --author-sort "Various Authors" \
             --tags "News" \
@@ -42,6 +46,15 @@ jobs:
       - name: Upload .kepub file to artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: the-economist-kepub
-          path: output/the-economist.kepub
+          name: the-economist-${{ env.DATE }}
+          path: the-economist-${{ env.DATE }}.kepub
           retention-days: 90
+
+      - name: Upload .kepub file to VPS
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: the-economist-${{ env.DATE }}.kepub
+          target: ${{ secrets.VPS_PATH }}

@@ -24,6 +24,10 @@ jobs:
           sudo apt-get install libegl1 libopengl0 libxcb-cursor0
           sudo -v && wget -nv -O- https://download.calibre-ebook.com/linux-installer.sh | sudo sh /dev/stdin
 
+      - name: Set current date in env variables
+        run: |
+          echo "DATE=$(date +%Y-%m-%d)" >> $GITHUB_ENV
+
       - name: Fetch news
         run: |
           mkdir -p output
@@ -31,7 +35,7 @@ jobs:
           MONTH=$(date +%m)
           SERIES_INDEX="${YEAR}.${MONTH}"
 
-          ebook-convert "custom-recipes/National Geographic.recipe" "output/national-geographic.kepub" \
+          ebook-convert "custom-recipes/National Geographic.recipe" "national-geographic-${{ env.DATE }}.kepub" \
             --recipe-specific-option=res:1500 \
             --authors "Various Authors" \
             --author-sort "Various Authors" \
@@ -43,6 +47,15 @@ jobs:
       - name: Upload .kepub file to artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: national-geographic-kepub
-          path: output/national-geographic.kepub
+          name: national-geographic-${{ env.DATE }}
+          path: national-geographic-${{ env.DATE }}.kepub
           retention-days: 90
+
+      - name: Upload .kepub file to VPS
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: national-geographic-${{ env.DATE }}.kepub
+          target: ${{ secrets.VPS_PATH }}
