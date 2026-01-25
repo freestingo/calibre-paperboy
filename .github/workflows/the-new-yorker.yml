@@ -45,3 +45,12 @@ jobs:
           name: the-new-yorker-magazine-kepub
           path: output/the-new-yorker-magazine.kepub
           retention-days: 90
+
+      - name: Upload .kepub file to VPS
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: output/the-new-yorker-magazine.kepub
+          target: ${{ secrets.VPS_PATH }}
