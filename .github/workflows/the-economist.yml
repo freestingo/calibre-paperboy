@@ -4,10 +4,17 @@ on:
   # schedule:
   #   - cron: "0 0 * * SAT"
   workflow_dispatch:
+    inputs:
+      issue_date:
+        description: "Issue date for The Economist (YYYY-mm-DD). Leave empty for latest."
+        required: false
+        type: string
 
 jobs:
   fetch-news:
     runs-on: ubuntu-latest
+    env:
+      ISSUE_DATE: ${{ github.event.inputs.issue_date }}
 
     steps:
       - name: Checkout repository
@@ -35,7 +42,17 @@ jobs:
           WEEK=$(date +%V)
           SERIES_INDEX="${YEAR}.${WEEK}"
 
+          RECIPE_SPECIFIC_OPTION=""
+      
+          if [ -n "$ISSUE_DATE" ]; then
+            echo "Using specified issue date: $ISSUE_DATE"
+            RECIPE_SPECIFIC_OPTION="--recipe-specific-option=date:$ISSUE_DATE"
+          else
+            echo "No issue date specified, fetching latest issue"
+          fi
+
           ebook-convert "The Economist.recipe" "the-economist-${{ env.DATE }}.kepub" \
+            $RECIPE_SPECIFIC_OPTION \
             --authors "Various Authors" \
             --author-sort "Various Authors" \
             --tags "News" \
