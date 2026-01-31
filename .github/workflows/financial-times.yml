@@ -37,7 +37,7 @@ jobs:
           SERIES_INDEX="${YEAR}.${MONTH}"
           DAYS=$(echo $(cal $(date -d "last month" +%m) $(date -d "last month" +%Y)) | tail -c 3) # Get number of days in the previous month
 
-          ebook-convert "custom-recipes/Financial Times + Free Lunch newsletter.recipe" "financial-times-${{ env.DATE }}.kepub" \
+          ebook-convert "Financial Times.recipe" "financial-times-${{ env.DATE }}.kepub" \
             --recipe-specific-option=days:$DAYS \
             --authors "Various Authors" \
             --author-sort "Various Authors" \
